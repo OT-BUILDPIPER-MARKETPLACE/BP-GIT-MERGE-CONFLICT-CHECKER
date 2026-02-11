@@ -1,13 +1,42 @@
-FROM alpine
-RUN apk add --no-cache --upgrade bash
-RUN apk add jq
-COPY build.sh .
+FROM ubuntu:22.04
 
-ADD BP-BASE-SHELL-STEPS /opt/buildpiper/shell-functions/
+RUN apt-get update && \
+    apt-get install -y \
+        jq \
+        git \
+        bash \
+        curl \
+        python3 \
+        python3-pip \
+        sudo && \
+    apt-get clean && rm -rf /var/lib/apt/lists/*
+
+RUN curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py && \
+    python3 get-pip.py && \
+    pip install cryptography && \
+    rm get-pip.py
+
+RUN groupadd -g 65522 buildpiper && \
+    useradd -u 65522 -g buildpiper -d /home/buildpiper -m -s /bin/bash buildpiper && \
+    mkdir -p /bp /bp/workspace /bp/data /home/buildpiper/reports && \
+    chown -R buildpiper:buildpiper /bp /home/buildpiper
 
 
-ENV SLEEP_DURATION 5s
-ENV ACTIVITY_SUB_TASK_CODE REPLACE_IT
-ENV VALIDATION_FAILURE_ACTION WARNING
+COPY --chown=buildpiper:buildpiper build.sh /home/buildpiper/build.sh
+COPY --chown=buildpiper:buildpiper BP-BASE-SHELL-STEPS/ /opt/buildpiper/shell-functions/
+
+RUN chmod +x /home/buildpiper/build.sh
+
+
+ENV CREDENTIAL_USERNAME=""
+ENV CREDENTIAL_PASSWORD=""
+ENV ACTIVITY_SUB_TASK_CODE="BP-GIT-TAG-CREATE-TASK"
+ENV SLEEP_DURATION="0s"
+ENV TAG_NAME=""
+
+
+USER buildpiper
+WORKDIR /home/buildpiper
+
 
 ENTRYPOINT [ "./build.sh" ]
