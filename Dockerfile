@@ -27,12 +27,8 @@ COPY --chown=buildpiper:buildpiper BP-BASE-SHELL-STEPS/ /opt/buildpiper/shell-fu
 
 RUN chmod +x /home/buildpiper/build.sh
 
-
-ENV CREDENTIAL_USERNAME=""
-ENV CREDENTIAL_PASSWORD=""
 ENV ACTIVITY_SUB_TASK_CODE="BP-GIT-TAG-CREATE-TASK"
 ENV SLEEP_DURATION="0s"
-ENV TAG_NAME=""
 
 
 USER buildpiper
