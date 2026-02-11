@@ -14,11 +14,20 @@ cd  "${CODEBASE_LOCATION}"
 
 TASK_STATUS=0
 
-if [condition]; then
-    logErrorMessage "Done the required operation"
-else
-    TASK_STATUS=1
-    logErrorMessage "Target server not provided please check"
+TARGET_BRANCH=${"TARGET_BRANCH"}
 
+git fetch origin "$TARGET_BRANCH"
+
+git merge --no-commit --no-ff "origin/$TARGET_BRANCH" || true
+
+if git diff --name-only --diff-filter=U | grep -q .; then
+  logErrorMessage "Merge conflict detected with $TARGET_BRANCH"
+  git merge --abort
+  TASK_STATUS=1
+else
+  logInfoMessage "No merge conflicts with $TARGET_BRANCH"
+  git merge --abort
 fi
+
+TASK_STATUS=?
 saveTaskStatus ${TASK_STATUS} ${ACTIVITY_SUB_TASK_CODE}
